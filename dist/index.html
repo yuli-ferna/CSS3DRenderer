@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSS3DRender</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+        body {
+			background-color: #ffffff;
+			margin: 0;
+			overflow: hidden;
+		}
+
+		#css3d, #gl {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			top: 0; left: 0;
+		}
+
+		#css3d {
+			background: black;
+		}
+
+		#gl {
+			pointer-events: none;
+		}
+    </style>
+</head>
+<body>
+	<script type="text/javascript" id="www-widgetapi-script" src="https://s.ytimg.com/yts/jsbin/www-widgetapi-vflS50iB-/www-widgetapi.js" async=""></script>
+	<script src="https://www.youtube.com/player_api"></script>
+	<div id="css3d"></div>
+	<div id="gl"></div>
+    <script src="./js/libs/THREEx.KeyboardState.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
