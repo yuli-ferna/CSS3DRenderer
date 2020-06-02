@@ -13,28 +13,13 @@ const Stats = require('stats.js');
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS3DRenderer, CSS3DObject, CSS3DSprite } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 
-import { Vector3, BufferGeometryLoader } from 'three';
-
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
+import { Vector3 } from 'three';
 
 const MATCH_URL_TWITCH_VIDEO = /(?:www\.|go\.)?twitch\.tv\/videos\/(\d+)($|\?)/
 const MATCH_URL_TWITCH_CHANNEL = /(?:www\.|go\.)?twitch\.tv\/([a-zA-Z0-9_]+)($|\?)/
 const MATCH_URL_YOUTUBE = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})|youtube\.com\/playlist\?list=|youtube\.com\/user\//
 let config ={};
-let rendererCSS, sceneCSS, camera;
-let sceneGL, rendererGL;
-let keyboard = new THREEx.KeyboardState();
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-let raycaster;	
-let renderCSS3D = false;
-let velocity = new THREE.Vector3();
-let direction = new THREE.Vector3();
-let mouse = new THREE.Vector2();
 
-let controls;
 let addPopupURL = ( id, idIFrame, player, pos, ry = 0 ) =>{
 	let div = document.createElement('div');
 	div.style.fontFamily = "'Roboto', sans-serif";
@@ -103,67 +88,6 @@ let addPopupURL = ( id, idIFrame, player, pos, ry = 0 ) =>{
 
 	config.sceneCSS.add(object);
 }
-let addInput = ( id, pos, ry = 0, width = 480, height = 40 ) => {
-	let div = document.createElement( 'div' );
-	div.style.width = width + 'px';
-	div.style.height = height + 'px';
-	div.style.backgroundColor = '#000';
-	div.style.fontFamily = "'Roboto', sans-serif";
-	div.id = id + '-container';
-
-	let input = document.createElement('INPUT');
-	input.setAttribute("type", "text");
-	input.setAttribute("placeholder", "Insert youtube URL");
-	input.id = id + '-input';
-	input.style.width = '80%';
-	input.style.marginRight = '5px';
-	input.addEventListener('click', function (params) {
-		input.focus();
-		config.controls.enabled = false;
-		
-	})
-	input.addEventListener('focusout', function (params) {
-		config.controls.enabled = true;
-		
-	})
-	let button = document.createElement('button');
-	button.innerHTML = 'Show';
-	button.addEventListener('click', function (params) {
-
-		if (document.getElementById('error')) 
-		{
-			document.getElementById('error').remove();
-		}
-		let input = document.getElementById(id + '-input');
-		let url = input.value;
-		input.value = '';
-		console.log(url);
-		
-		let cont = document.getElementById(id + '-container');
-		let embedURL = id == 'youtubeURL' ? getEmbedYT(url) : getEmbedTwitch(url);
-		if (embedURL) {
-			let iframeVideo = document.getElementById(id);
-			iframeVideo.src = embedURL;
-		}else{
-			let error = document.createElement('p');
-			error.innerHTML = "Insert valid youtube url";
-			error.style.color = 'red';
-			error.id = 'error';
-			cont.appendChild( error );
-		}
-		
-	})
-
-	div.appendChild( input );
-	div.appendChild( button );
-
-	
-	let object = new CSS3DObject( div );
-	object.position.set( pos.x, pos.y, pos.z );
-	object.rotation.y = ry;
-
-	config.sceneCSS.add(object);
-};
 
 let addIFrame = ( src, id, pos, ry, width = 1080, height = 620 ) => {
 
@@ -247,8 +171,7 @@ let init = () => {
 	config.sceneGL = new THREE.Scene();
 
 	config.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
-	config.camera2 = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
-
+	
 	// create a CSS3DRenderer
 	config.rendererCSS = new CSS3DRenderer();
 	config.rendererCSS.setSize(window.innerWidth, window.innerHeight);
@@ -271,23 +194,19 @@ let init = () => {
 	config.camera.position.x = 0;
 	config.camera.position.y = 0;
 	config.camera.position.z = 1300;
-	// config.camera.up = new THREE.Vector3(0,0,1);
-	// config.camera.lookAt(scene.position);
+	config.camera.lookAt(0,0,0);
 	
-	let url= 'https://www.youtube.com/watch?v=drTyVcMHy_k';
-	
-	addIFrame( getEmbedYT(url), 'youtube', new Vector3( 600, 200, 0 ), 0 );
-	
+	//Add iframes
+	addIFrame( getEmbedYT('https://www.youtube.com/watch?v=drTyVcMHy_k'), 'youtube', new Vector3( 600, 200, 0 ), 0 );
 	addIFrame( getEmbedTwitch('https://www.twitch.tv/tfue'), 'twitch', new Vector3( -600, 200, 0 ), 0 );
-	
-	// addInput( 'youtubeURL', new Vector3( 0, 250, 0 ), 0 );
+	//Add input buttons
 	addPopupURL( 'youtubeURL', 'youtube', 'youtube', new Vector3( 600, -130, 0 ), 0 );
 	addPopupURL( 'twitchURL', 'twitch', 'twitch', new Vector3( -600, -130, 0 ), 0 );
+	
+	//Init controls
 	config.controls = new OrbitControls( config.camera, config.rendererCSS.domElement );
 	// config.controlsGL = new OrbitControls( config.camera, config.rendererGL.domElement );
-	// config.controls = new PointerLockControls( camera, document.body );
-	// config.sceneGL.add( config.controls.getObject() );
-
+	
 	config.controls.keys = {
 		LEFT: 65, //A
 		UP: 87, // W
@@ -295,15 +214,11 @@ let init = () => {
 		BOTTOM: 83 // S
 	};
 	// config.controlsGL.keys = config.controls.keys;
-	// config.controls.enabled = false;
-
+	
+	//Set light
 	let light = new THREE.AmbientLight(0xffffff);
 	config.sceneGL.add(light);
-	// let pointLight = new THREE.PointLight(0xffffff);
-	// pointLight.position.set(0, 300, 100);
-	// config.sceneGL.add(pointLight);
-	// let helperPointLight = new THREE.PointLightHelper(pointLight);
-	// config.sceneGL.add(helperPointLight);
+	//Set cube
 	let geometry = new THREE.BoxGeometry( 100, 100, 100 );
 	let material = new THREE.MeshStandardMaterial({
 		color: 0x00ffff,
@@ -315,6 +230,7 @@ let init = () => {
 	cube.position.set(0,200, 500);
 	cube.rotation.x = -Math.PI / 3;
 	config.sceneGL.add( cube );
+	//Set floor
 	let floorTexture = new THREE.ImageUtils.loadTexture( 'assets/checkerboard.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
 	floorTexture.repeat.set( 35, 35 );
@@ -348,21 +264,11 @@ function animate()
 {
 	requestAnimationFrame(animate);
 	
-	// // stats.update();	
-	// config.sceneCSS.updateMatrixWorld()
-	// config.sceneGL.updateMatrixWorld()
-	
 	config.controls.update();
 	config.rendererCSS.render( config.sceneCSS, config.camera );
 	config.rendererGL.render( config.sceneGL, config.camera );
-	// if (renderCSS3D) {
-		
-	// }else{
-	// 	config.controlsGL.update();
-	// 	// config.rendererCSS.render( config.sceneCSS, config.camera );
-	// 	config.rendererGL.render( config.sceneGL, config.camera );
-
-	// }
+	
+	//La idea pasada de "cambiar" de render dependiendo de la distancia
 	// if (config.camera.position.z < 2200 && !renderCSS3D) {
 	// 	console.log(config.camera.position);
 	// 	renderCSS3D = true;
