@@ -274,15 +274,15 @@ let init = () => {
 	// config.camera.up = new THREE.Vector3(0,0,1);
 	// config.camera.lookAt(scene.position);
 	
-	let url= 'https://www.youtube.com/watch?v=U5vTlFp4Gew';
+	let url= 'https://www.youtube.com/watch?v=drTyVcMHy_k';
 	
-	addIFrame( getEmbedYT(url), 'youtube', new Vector3( 550, 200, 0 ), 0 );
+	addIFrame( getEmbedYT(url), 'youtube', new Vector3( 600, 200, 0 ), 0 );
 	
-	addIFrame( getEmbedTwitch('https://www.twitch.tv/tfue'), 'twitch', new Vector3( -550, 200, 0 ), 0 );
+	addIFrame( getEmbedTwitch('https://www.twitch.tv/tfue'), 'twitch', new Vector3( -600, 200, 0 ), 0 );
 	
 	// addInput( 'youtubeURL', new Vector3( 0, 250, 0 ), 0 );
-	addPopupURL( 'youtubeURL', 'youtube', 'youtube', new Vector3( 550, -130, 0 ), 0 );
-	addPopupURL( 'twitchURL', 'twitch', 'twitch', new Vector3( -550, -130, 0 ), 0 );
+	addPopupURL( 'youtubeURL', 'youtube', 'youtube', new Vector3( 600, -130, 0 ), 0 );
+	addPopupURL( 'twitchURL', 'twitch', 'twitch', new Vector3( -600, -130, 0 ), 0 );
 	config.controls = new OrbitControls( config.camera, config.rendererCSS.domElement );
 	// config.controlsGL = new OrbitControls( config.camera, config.rendererGL.domElement );
 	// config.controls = new PointerLockControls( camera, document.body );
@@ -305,20 +305,26 @@ let init = () => {
 	// let helperPointLight = new THREE.PointLightHelper(pointLight);
 	// config.sceneGL.add(helperPointLight);
 	let geometry = new THREE.BoxGeometry( 100, 100, 100 );
-	let material = new THREE.MeshStandardMaterial( {color: 0x00ff00} );
+	let material = new THREE.MeshStandardMaterial({
+		color: 0x00ffff,
+		specular: 0x050505,
+		shininess: 50,
+		emissive: 0x000000
+	});
 	let cube = new THREE.Mesh( geometry, material );
-	cube.position.set(0,300, 500);
+	cube.position.set(0,200, 500);
+	cube.rotation.x = -Math.PI / 3;
 	config.sceneGL.add( cube );
 	let floorTexture = new THREE.ImageUtils.loadTexture( 'assets/checkerboard.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
 	floorTexture.repeat.set( 35, 35 );
 	let floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 	let floorGeometry = new THREE.PlaneGeometry(3500, 3500, 35, 35);
-	let floor = new THREE.Mesh(floorGeometry, floorMaterial);
-	floor.position.y = 450;
-	floor.rotation.x = -Math.PI / 3;
-	// floor.rotation.z = Math.PI / 2;
-	config.sceneGL.add(floor);
+	let TeleportFloor = new THREE.Mesh(floorGeometry, floorMaterial);
+	TeleportFloor.position.y = 450;
+	TeleportFloor.rotation.x = -Math.PI / 3;
+	TeleportFloor.name = 'TeleportFloor';
+	config.sceneGL.add(TeleportFloor);
 }
 
 function displayWindowSize(){
