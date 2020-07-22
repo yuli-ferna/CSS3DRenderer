@@ -12,27 +12,33 @@
 
 		#css3d, #gl {
 			width: 100%;
+			height: 100%;
+			top: 0; left: 0;
 			position: absolute;
 		}
 
 		#css3d {
 			background: black;
-			height: 65%;
+			/* height: 65%; */
 			top: 0; left: 0;
 		}
 
 		#gl {
-			/* pointer-events: none; */
-			height: 35%;
-			top: 65%;
+			
+			pointer-events: none;
+			/* height: 35%; */
+			/* top: 65%; */
 		}
     </style>
 </head>
 <body>
+	<script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+
 	<script type="text/javascript" id="www-widgetapi-script" src="https://s.ytimg.com/yts/jsbin/www-widgetapi-vflS50iB-/www-widgetapi.js" async=""></script>
 	<script src="https://www.youtube.com/player_api"></script>
 	<div id="css3d"></div>
 	<div id="gl"></div>
+	
     <script src="./js/libs/THREEx.KeyboardState.js"></script>
     <script src="main.js"></script>
 </body>

@@ -20,6 +20,23 @@ const MATCH_URL_TWITCH_CHANNEL = /(?:www\.|go\.)?twitch\.tv\/([a-zA-Z0-9_]+)($|\
 const MATCH_URL_YOUTUBE = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})|youtube\.com\/playlist\?list=|youtube\.com\/user\//
 let config ={};
 
+let getEmbedTwitchIds = (url) => {
+	//https://player.twitch.tv/?<channel, video, or collection>&parent=streamernews.example.com
+	let ids = {channel: null, video: null}
+	const isChannel = MATCH_URL_TWITCH_CHANNEL.test(url)
+	const isVideo = MATCH_URL_TWITCH_VIDEO.test(url)
+	if (isVideo) {
+		ids.video = url.match(MATCH_URL_TWITCH_VIDEO)[1]
+	}
+	else if (isChannel) {
+		ids.channel = url.match(MATCH_URL_TWITCH_CHANNEL)[1]
+	}
+	else{
+		return null;
+	}
+	return ids;
+}
+
 let addPopupURL = ( id, idIFrame, player, pos, ry = 0 ) =>{
 	let div = document.createElement('div');
 	div.style.fontFamily = "'Roboto', sans-serif";
@@ -34,6 +51,7 @@ let addPopupURL = ( id, idIFrame, player, pos, ry = 0 ) =>{
 	button.innerHTML = 'Insert URL';
 
 	button.addEventListener('click', function (params) {
+		
 		let url = prompt("Please enter " + player + " URL:", "");
 		let cont = document.getElementById( id + '-container' );
 		if (url == null || url == "") {
@@ -149,7 +167,7 @@ let getEmbedTwitch = (url) => {
 	const isVideo = MATCH_URL_TWITCH_VIDEO.test(url)
 	if (isVideo) {
 		let id = url.match(MATCH_URL_TWITCH_VIDEO)[1]
-		let embedURL = 'https://player.twitch.tv/?video=' + id ;
+		let embedURL = 'https://player.twitch.tv/?video=' + id +'&parent=streamernews.example.com' ;
 		return embedURL;
 	}
 	else if (isChannel) {
@@ -162,6 +180,72 @@ let getEmbedTwitch = (url) => {
 	}
 }
 
+let addTwitchPlayer =( src, id, pos, ry, width = 1080, height = 620, scale = 1 ) =>{
+	//Twitch player API version
+	let div = document.createElement( 'div' );
+	let groupbuttons = document.createElement( 'div' );
+	let button = document.createElement( 'button' );
+	button.innerHTML = "Load";
+	let vol = document.createElement( 'button' );
+	vol.innerHTML = "Volume +";
+	groupbuttons.appendChild(button);
+	groupbuttons.appendChild(vol);
+	div.style.width = width + 'px';
+	div.style.height = height + 'px';
+	div.style.backgroundColor = '#000';
+	div.id ='twitchPlayer';
+	let ids = getEmbedTwitchIds(src);
+	// document.body.appendChild(div);
+	let object = new CSS3DObject( div );
+	object.position.set( pos.x, pos.y, pos.z );
+	object.scale.set( scale, scale, scale );
+	object.rotation.y = ry;
+
+	// return object;
+	config.sceneCSS.add(object);
+	let object1 = new CSS3DObject( groupbuttons );
+	object1.position.set( pos.x, pos.y-60, pos.z );
+
+	config.sceneCSS.add(object1);
+	button.addEventListener('click', function (params) {
+		
+		let options = {
+			width: width,
+			height: height,
+			channel: ids.channel,
+			video: ids.video,
+			// controls: false,
+			// only needed if your site is also embedded on embed.example.com and othersite.example.com 
+			parent: [window.location.hostname]
+		};
+		window.player = new Twitch.Player("twitchPlayer", options);
+		// console.log(window.player);
+		window.player.setMuted(false);
+		window.player.setVolume(0.5);
+	
+		window.player.addEventListener(Twitch.Embed.VIDEO_READY, () => {
+			let divp = document.getElementById("twitchPlayer")
+			window.player.setMuted(false);
+			window.player.setVolume(0.5);
+			// divp.style.pointerEvents = 'none';
+			// let object = new CSS3DObject( divp );
+			// object.position.set( pos.x, pos.y, pos.z );
+			// object.scale.set( scale, scale, scale );
+			// object.rotation.y = ry;
+			
+			// // return object;
+			// window.sceneCSS.add(object);
+		});
+		// div = document.getElementById("twitchPlayer")
+		window.player.setMuted(false);
+		window.player.setVolume(0.5);
+    })
+	vol.addEventListener('click', function (params) {
+		window.player.setVolume(window.player.getVolume() + 0.1)
+		
+	});
+	
+} 
 
 let init = () => {
 	
@@ -191,14 +275,14 @@ let init = () => {
 
 
 	// position and point the config.camera to the center of the scene
-	config.camera.position.x = 0;
+	config.camera.position.x = -200;
 	config.camera.position.y = 0;
 	config.camera.position.z = 1300;
-	config.camera.lookAt(0,0,0);
+	config.camera.lookAt(-200,0,0);
 	
 	//Add iframes
 	addIFrame( getEmbedYT('https://www.youtube.com/watch?v=drTyVcMHy_k'), 'youtube', new Vector3( 600, 200, 0 ), 0 );
-	addIFrame( getEmbedTwitch('https://www.twitch.tv/tfue'), 'twitch', new Vector3( -600, 200, 0 ), 0 );
+	addTwitchPlayer( ('https://www.twitch.tv/tfue'), 'twitch', new Vector3( -600, 200, 0 ), 0 );
 	//Add input buttons
 	addPopupURL( 'youtubeURL', 'youtube', 'youtube', new Vector3( 600, -130, 0 ), 0 );
 	addPopupURL( 'twitchURL', 'twitch', 'twitch', new Vector3( -600, -130, 0 ), 0 );
@@ -240,7 +324,7 @@ let init = () => {
 	TeleportFloor.position.y = 450;
 	TeleportFloor.rotation.x = -Math.PI / 3;
 	TeleportFloor.name = 'TeleportFloor';
-	config.sceneGL.add(TeleportFloor);
+	// config.sceneGL.add(TeleportFloor);
 }
 
 function displayWindowSize(){
