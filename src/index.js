@@ -21,6 +21,23 @@ const MATCH_URL_YOUTUBE = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/
 let config ={};
 let player;
 
+let getVideoIds = (url) => { 
+	let ids = getEmbedTwitchIds(url);
+
+	if (ids) {
+		ids.name = 'twitch';
+		return ids;
+	}else if (MATCH_URL_YOUTUBE.test(url)) {
+		ids = {};
+		ids.name = 'youtube';
+		ids.video = url.match(MATCH_URL_YOUTUBE)[1]
+	}else {
+		return null;
+	}
+
+	return ids;
+
+}
 let getEmbedTwitchIds = (url) => {
 	//https://player.twitch.tv/?<channel, video, or collection>&parent=streamernews.example.com
 	let ids = {channel: null, video: null}
@@ -108,29 +125,29 @@ let addPopupURLIFrame = ( id, idIFrame, player, pos, ry = 0 ) =>{
 	config.sceneCSS.add(object);
 }
 
-let addPopupURL = ( id, playerName, pos, ry = 0 ) =>{
+let addPopupURL = ( buttonOptions ) =>{
 	let div = document.createElement('div');
-	div.style.fontFamily = "'Roboto', sans-serif";
-	div.id = id + '-container';
+	div.style.fontFamily = buttonOptions.fontFamily ? buttonOptions.fontFamily : "'Roboto', sans-serif";
+	div.id = buttonOptions.id ? buttonOptions.id : 'popup-container';
 
 	let button = document.createElement('button');
-	button.style.fontSize = '20px';
-	button.style.borderRadius = '10px';
-	button.style.padding = '5px';
-	button.style.border = 'none';
-	button.style.background = '#81f1ff';
-	button.innerHTML = 'Insert URL';
+	button.style.fontSize = buttonOptions.fontSize ? buttonOptions.fontSize : '20px';
+	button.style.borderRadius = buttonOptions.borderRadius ? buttonOptions.borderRadius : '10px';
+	button.style.padding = buttonOptions.padding ? buttonOptions.padding : '5px';
+	button.style.border = buttonOptions.border ? buttonOptions.border : 'none';
+	button.style.background = buttonOptions.background ? buttonOptions.background : '#81f1ff';
+	button.innerHTML = buttonOptions.innerHTML ? buttonOptions.innerHTML : 'Insert URL';
 
 	button.addEventListener('click', function (params) {
 		
-		let url = prompt("Please enter " + playerName + " URL:", "");
-		let cont = document.getElementById( id + '-container' );
+		let url = prompt("Please enter " + "Youtube or Twitch" + " URL:", "");
+		// let cont = document.getElementById( id + '-container' );
 		if (url == null || url == "") {
 			// let war = document.createElement('p');
 			// war.innerHTML = "Insert valid youtube url";
 			// war.id = 'war';
 			// cont.appendChild( war );
-			console.log('WORK');
+			// console.log('WORK');
 			
 		} else 
 		{
@@ -139,36 +156,33 @@ let addPopupURL = ( id, playerName, pos, ry = 0 ) =>{
 				document.getElementById('error').remove();
 			}
 			console.log(url);
-			
-			let embedURL;
-			switch (playerName) {
+			let ids = getVideoIds(url);
+			switch (ids.name) {
 				case 'youtube':
-					embedURL = getEmbedYT(url);
-					
+					console.log(player);
+					player.videoId = ids.video;
 					break;
 				case 'twitch':
-					embedURL = getEmbedTwitchIds(url);
-					if (embedURL && embedURL.channel) {
+					
+					if (ids.channel) {
 						console.log(player);
-						player.setChannel(embedURL.channel);
-					}else if(embedURL && embedURL.video) {
-						player.setVideo(embedURL.video);
-					}else{
-						embedURL = null;
+						player.setChannel(ids.channel);
+					}else if(ids.video) {
+						player.setVideo(ids.video);
 					}
 					break;
 				
 				default:
-					embedURL = null;
+
 					break;
 			}
-			if (!embedURL) {
+			if (!ids) {
 				// let error = document.createElement('p');
 				// error.innerHTML = "Insert valid " + player + " url";
 				// error.style.color = 'red';
 				// error.id = 'error';
 				// cont.appendChild( error );
-				alert("Insert valid " + playerName + " url")
+				alert("Insert valid " + buttonOptions.playerName + " url")
 			}
 		}
 		
@@ -176,8 +190,66 @@ let addPopupURL = ( id, playerName, pos, ry = 0 ) =>{
 
 	div.appendChild( button );
 	let object = new CSS3DObject( div );
-	object.position.set( pos.x, pos.y, pos.z );
-	object.rotation.y = ry;
+	object.position.set( buttonOptions.pos.x, buttonOptions.pos.y, buttonOptions.pos.z );
+	object.rotation.y = buttonOptions.ry ? buttonOptions.ry : 0;
+
+	config.sceneCSS.add(object);
+}
+
+let addPopupURLTwitch = ( buttonOptions ) =>{
+	let div = document.createElement('div');
+	div.style.fontFamily = buttonOptions.fontFamily ? buttonOptions.fontFamily : "'Roboto', sans-serif";
+	div.id = buttonOptions.id ? buttonOptions.id : 'popup-container';
+
+	let button = document.createElement('button');
+	button.style.fontSize = buttonOptions.fontSize ? buttonOptions.fontSize : '20px';
+	button.style.borderRadius = buttonOptions.borderRadius ? buttonOptions.borderRadius : '10px';
+	button.style.padding = buttonOptions.padding ? buttonOptions.padding : '5px';
+	button.style.border = buttonOptions.border ? buttonOptions.border : 'none';
+	button.style.background = buttonOptions.background ? buttonOptions.background : '#81f1ff';
+	button.innerHTML = buttonOptions.innerHTML ? buttonOptions.innerHTML : 'Insert URL';
+
+	button.addEventListener('click', function (params) {
+		
+		let url = prompt("Please enter " + "Twitch" + " URL:", "");
+		// let cont = document.getElementById( id + '-container' );
+		if (url == null || url == "") {
+			// let war = document.createElement('p');
+			// war.innerHTML = "Insert valid youtube url";
+			// war.id = 'war';
+			// cont.appendChild( war );
+			// console.log('WORK');
+			
+		} else 
+		{
+			if (document.getElementById('error')) 
+			{
+				document.getElementById('error').remove();
+			}
+			console.log(url);
+			let ids = getEmbedTwitchIds(url);
+			if (!ids) {
+				// let error = document.createElement('p');
+				// error.innerHTML = "Insert valid " + player + " url";
+				// error.style.color = 'red';
+				// error.id = 'error';
+				// cont.appendChild( error );
+				alert("Insert valid " + buttonOptions.playerName + " url")
+			}else if (ids.channel) {
+				console.log(player);
+				player.setChannel(ids.channel);
+			}else if(ids.video) {
+				player.setVideo(ids.video);
+			}
+
+		}
+		
+	})
+
+	div.appendChild( button );
+	let object = new CSS3DObject( div );
+	object.position.set( buttonOptions.pos.x, buttonOptions.pos.y, buttonOptions.pos.z );
+	object.rotation.y = buttonOptions.ry ? buttonOptions.ry : 0;
 
 	config.sceneCSS.add(object);
 }
@@ -257,11 +329,11 @@ let getEmbedTwitch = (url) => {
 }
 let createDivPlayer = (width, height, pos, ry, scale) =>{
 	return new Promise((resolve, reject) => {
-		console.log('Inicial');
+		
 		let div = document.createElement( 'div' );
 		div.style.width = width + 'px';
 		div.style.height = height + 'px';
-		div.style.backgroundColor = '#000';
+		// div.style.backgroundColor = '#000';
 		div.id ='divPlayerVideo';
 		// document.body.appendChild(div);
 		let object = new CSS3DObject( div );
@@ -281,42 +353,122 @@ let createDivPlayer = (width, height, pos, ry, scale) =>{
 	})
 };
 
-let createTwitchPlayer = (options) => {
+let createTwitchPlayer = ( options, buttonOptions ) => {
 
 	player = new Twitch.Player("divPlayerVideo", options);
 	// console.log(player);
 	player.setMuted(false);
 	player.setVolume(0.5);
 	
-	// player.addEventListener(Twitch.Embed.VIDEO_READY, () => {
-	// 	let divp = document.getElementById("divPlayerVideo")
-	// 	player.setMuted(false);
-	// 	player.setVolume(0.5);
-	// 	// divp.style.pointerEvents = 'none';
-	// 	// let object = new CSS3DObject( divp );
-	// 	// object.position.set( pos.x, pos.y, pos.z );
-	// 	// object.scale.set( scale, scale, scale );
-	// 	// object.rotation.y = ry;
-		
-	// 	// // return object;
-	// 	// window.sceneCSS.add(object);
-	// });
-	// // div = document.getElementById("divPlayerVideo")
-	// player.setMuted(false);
-	// player.setVolume(0.5);
-	addPopupURL( 'twitchURL', 'twitch', new Vector3( -600, -130, 0 ), 0 )
+	addPopupURLTwitch( buttonOptions )
 };
 
-let addTwitchPlayer =( src, id, pos, ry, width = 1080, height = 620, scale = 1 ) =>{
+let createYoutubePlayer = (options, buttonOptions) => {
+	player = new YT.Player("divPlayerVideo", {
+		height: options.width,
+		width: options.height,
+		videoId: options.id,
+		events: {
+			'onReady': onPlayerReady,
+		}
+		
+	});
+	function onPlayerReady(event) {
+        // event.target.playVideo();
+    }
+	addPopupURL( buttonOptions );
 	let groupbuttons = document.createElement( 'div' );
 	let button = document.createElement( 'button' );
 	button.innerHTML = "Load";
 	let vol = document.createElement( 'button' );
 	vol.innerHTML = "Volume +";
-	groupbuttons.appendChild(button);
+	let volslider = document.createElement("INPUT"); 
+	volslider.setAttribute("type", "range"); 
+	volslider.setAttribute("min", "0"); 
+	volslider.setAttribute("max", "1"); 
+	volslider.setAttribute("step", "0.1"); 
+
+	// groupbuttons.appendChild(button);
 	groupbuttons.appendChild(vol);
+	groupbuttons.appendChild(volslider);
+	
+	volslider.addEventListener('mousemove', function(params) {
+		/* if (this.value > 0 && this.value < 5) {
+			alert("First");
+		} */ /* else{
+			alert("Second");
+		} */
+		console.log(params)
+	});
+	// return object;
+	let object1 = new CSS3DObject( groupbuttons );
+	object1.position.set( pos.x, -160, pos.z );
+
+	config.sceneCSS.add(object1);
+	// If EXISTE el div con id twitchPlayer hacer esta vaina
+	button.addEventListener('click', function (params) {
+		
+		player.setChannel('ibai')
+    })
+	vol.addEventListener('click', function (params) {
+		console.log(player.getVolume());
+		player.setVolume(player.getVolume() + 0.1)
+		
+	});
+	// vol.addEventListener('click', function (params) {
+	// 	console.log(player.getVolume());
+	// 	player.setVolume(player.getVolume() - 0.1)
+		
+	// });
+}
+
+let addYoutubePlayer = ( src, id, pos, ry, buttonOptions = {}, width = 1080, height = 620, scale = 1 ) => 
+{
+	
+	createDivPlayer(width, height, pos, ry, scale).then(() =>{
+		let videoId = src && src.match(MATCH_URL_YOUTUBE)[1];
+		
+		let options = {
+			width: width,
+			height: height,
+			id: videoId,
+			playerVars: { 'autoplay': 0, 'controls': 0 },
+    
+			// controls: false,
+			// only needed if your site is also embedded on embed.example.com and othersite.example.com 
+			// playerVars:{
+
+			// 	'origin': /*location.protocol + '//' +*/ window.location.hostname
+			// }
+		};
+		createYoutubePlayer(options, buttonOptions);
+	})
+	
+
+	
+}
+
+let addTwitchPlayer =( src, id, pos, ry, buttonOptions = {}, width = 1080, height = 620, scale = 1 ) =>{
+	let groupbuttons = document.createElement( 'div' );
+	let button = document.createElement( 'button' );
+	button.innerHTML = "Load";
+	let vol = document.createElement( 'button' );
+	vol.innerHTML = "+";
+	let volMinus = document.createElement( 'button' );
+	volMinus.innerHTML = "-";
+	let mute = document.createElement( 'button' );
+	mute.innerHTML = "mute";
+	let volslider = document.createElement("INPUT"); 
+	volslider.setAttribute("type", "range"); 
+	volslider.min = 0;
+	volslider.max = 1;
+	volslider.value = 0.5; 
+	volslider.step = 0.1; 
+
+
 	//Twitch player API version
 	createDivPlayer(width, height, pos, ry, scale).then(() =>{
+		let ids = getEmbedTwitchIds(src);
 		
 		let options = {
 			width: width,
@@ -327,15 +479,14 @@ let addTwitchPlayer =( src, id, pos, ry, width = 1080, height = 620, scale = 1 )
 			// only needed if your site is also embedded on embed.example.com and othersite.example.com 
 			parent: [window.location.hostname]
 		};
-		createTwitchPlayer(options);
+		createTwitchPlayer(options, buttonOptions);
 	})
 	
 
-	let ids = getEmbedTwitchIds(src);
 
 	// return object;
 	let object1 = new CSS3DObject( groupbuttons );
-	object1.position.set( pos.x, pos.y-60, pos.z );
+	object1.position.set( pos.x, -160, pos.z );
 
 	config.sceneCSS.add(object1);
 	// If EXISTE el div con id twitchPlayer hacer esta vaina
@@ -344,9 +495,37 @@ let addTwitchPlayer =( src, id, pos, ry, width = 1080, height = 620, scale = 1 )
 		player.setChannel('ibai')
     })
 	vol.addEventListener('click', function (params) {
+		if (player.getVolume() + 0.1 <= 1) {
+
 		player.setVolume(player.getVolume() + 0.1)
+		}
+	});
+	volMinus.addEventListener('click', function (params) {
+		if (player.getVolume() - 0.1 > 0) {
+			player.setVolume(player.getVolume() - 0.1)
+			
+		}
 		
 	});
+	mute.addEventListener('click', function() {
+		player.setMuted( !player.getMuted() );
+	})
+	// groupbuttons.appendChild(button);
+	groupbuttons.appendChild(volMinus);
+	groupbuttons.appendChild(vol);
+	groupbuttons.appendChild(mute);
+	// groupbuttons.appendChild(volslider);
+	
+	volslider.addEventListener('click', function(params) {
+		/* if (this.value > 0 && this.value < 5) {
+			alert("First");
+		} */ /* else{
+			alert("Second");
+		} */
+		console.log(params)
+	});
+	// groupbuttons.appendChild(button);
+	// groupbuttons.appendChild(vol);
 	
 } 
 
@@ -384,10 +563,14 @@ let init = () => {
 	config.camera.lookAt(-200,0,0);
 	
 	//Add iframes
-	addIFrame( getEmbedYT('https://www.youtube.com/watch?v=drTyVcMHy_k'), 'youtube', new Vector3( 600, 200, 0 ), 0 );
-	addTwitchPlayer( ('https://www.twitch.tv/tfue'), 'twitch', new Vector3( -600, 200, 0 ), 0 );
+	// addIFrame( getEmbedYT('https://www.youtube.com/watch?v=drTyVcMHy_k'), 'youtube', new Vector3( 600, 200, 0 ), 0 );
+	let buttonops = {
+		pos: new Vector3( 0, -130, 0 )
+	};
+	addTwitchPlayer( ('https://www.twitch.tv/tfue'), 'twitch', new Vector3( 0, 200, 0 ), 0, buttonops  );
+	// addYoutubePlayer( ('https://www.youtube.com/watch?v=Z3UF_h0fbRg'), 'youtube', new Vector3( 0, 200, 0 ), 0, buttonops  );
 	//Add input buttons
-	addPopupURLIFrame( 'youtubeURL', 'youtube', 'youtube', new Vector3( 600, -130, 0 ), 0 );
+	// addPopupURLIFrame( 'youtubeURL', 'youtube', 'youtube', new Vector3( 600, -130, 0 ), 0 );
 	// addPopupURL( 'twitchURL', 'twitch', 'twitch', new Vector3( -600, -130, 0 ), 0 );
 	
 	//Init controls
@@ -416,7 +599,7 @@ let init = () => {
 	let cube = new THREE.Mesh( geometry, material );
 	cube.position.set(0,200, 500);
 	cube.rotation.x = -Math.PI / 3;
-	config.sceneGL.add( cube );
+	// config.sceneGL.add( cube );
 	//Set floor
 	let floorTexture = new THREE.ImageUtils.loadTexture( 'assets/checkerboard.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
