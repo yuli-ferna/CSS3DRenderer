@@ -159,8 +159,9 @@ let addPopupURL = ( buttonOptions ) =>{
 			let ids = getVideoIds(url);
 			switch (ids.name) {
 				case 'youtube':
-					console.log(player);
-					player.videoId = ids.video;
+					// console.log(player);
+					player.loadVideoById(ids.video)
+					// player.videoId = ;
 					break;
 				case 'twitch':
 					
@@ -404,20 +405,26 @@ let createYoutubePlayer = (options, buttonOptions) => {
 			player.pauseVideo()
  
 		}
+		
     })
 	vol.addEventListener('click', function (params) {
 		if (player.getVolume() + 10 <= 100) {
-			console.log(player.getVolume());
+			// console.log(player.getVolume());
 			player.setVolume(player.getVolume() + 10)
-			console.log(player.getVolume());
-	}
+			// console.log(player.getVolume());
+		}else{
+			player.setVolume(100);
+
+		}
 	});
 	volMinus.addEventListener('click', function (params) {
 		if (player.getVolume() - 10 >= 0) {
-			console.log(player.getVolume());
+			// console.log(player.getVolume());
 			player.setVolume(player.getVolume() - 10)
-			console.log(player.getVolume());
+			// console.log(player.getVolume());
 			
+		}else {
+			player.setVolume( 0 );
 		}
 		
 	});
@@ -500,14 +507,18 @@ let addTwitchPlayer =( src, id, pos, ry, buttonOptions = {}, width = 1080, heigh
     })
 	vol.addEventListener('click', function (params) {
 		if (player.getVolume() + 0.1 <= 1) {
+			player.setVolume(player.getVolume() + 0.1)
+		}else{
+			player.setVolume(1)
 
-		player.setVolume(player.getVolume() + 0.1)
 		}
 	});
 	volMinus.addEventListener('click', function (params) {
 		if (player.getVolume() - 0.1 > 0) {
 			player.setVolume(player.getVolume() - 0.1)
 			
+		}else{
+			player.setVolume(0);
 		}
 		
 	});
