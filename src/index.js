@@ -379,47 +379,48 @@ let createYoutubePlayer = (options, buttonOptions) => {
 	addPopupURL( buttonOptions );
 	let groupbuttons = document.createElement( 'div' );
 	let button = document.createElement( 'button' );
-	button.innerHTML = "Load";
+	button.innerHTML = "Play";
 	let vol = document.createElement( 'button' );
-	vol.innerHTML = "Volume +";
-	let volslider = document.createElement("INPUT"); 
-	volslider.setAttribute("type", "range"); 
-	volslider.setAttribute("min", "0"); 
-	volslider.setAttribute("max", "1"); 
-	volslider.setAttribute("step", "0.1"); 
-
-	// groupbuttons.appendChild(button);
+	vol.innerHTML = "+";
+	let volMinus = document.createElement( 'button' );
+	volMinus.innerHTML = "-";
+	volMinus.style.marginLeft = "10px";
+	groupbuttons.appendChild(button);
 	groupbuttons.appendChild(vol);
-	groupbuttons.appendChild(volslider);
+	groupbuttons.appendChild(volMinus);
 	
-	volslider.addEventListener('mousemove', function(params) {
-		/* if (this.value > 0 && this.value < 5) {
-			alert("First");
-		} */ /* else{
-			alert("Second");
-		} */
-		console.log(params)
-	});
+	
 	// return object;
 	let object1 = new CSS3DObject( groupbuttons );
-	object1.position.set( pos.x, -160, pos.z );
+	object1.position.set( buttonOptions.pos.x, -160, buttonOptions.pos.z );
 
 	config.sceneCSS.add(object1);
 	// If EXISTE el div con id twitchPlayer hacer esta vaina
 	button.addEventListener('click', function (params) {
-		
-		player.setChannel('ibai')
+		if (player.getPlayerState() != 1  ) //paused or unstarted
+		{
+			player.playVideo()
+		}else{
+			player.pauseVideo()
+ 
+		}
     })
 	vol.addEventListener('click', function (params) {
-		console.log(player.getVolume());
-		player.setVolume(player.getVolume() + 0.1)
+		if (player.getVolume() + 10 <= 100) {
+			console.log(player.getVolume());
+			player.setVolume(player.getVolume() + 10)
+			console.log(player.getVolume());
+	}
+	});
+	volMinus.addEventListener('click', function (params) {
+		if (player.getVolume() - 10 >= 0) {
+			console.log(player.getVolume());
+			player.setVolume(player.getVolume() - 10)
+			console.log(player.getVolume());
+			
+		}
 		
 	});
-	// vol.addEventListener('click', function (params) {
-	// 	console.log(player.getVolume());
-	// 	player.setVolume(player.getVolume() - 0.1)
-		
-	// });
 }
 
 let addYoutubePlayer = ( src, id, pos, ry, buttonOptions = {}, width = 1080, height = 620, scale = 1 ) => 
@@ -454,10 +455,13 @@ let addTwitchPlayer =( src, id, pos, ry, buttonOptions = {}, width = 1080, heigh
 	button.innerHTML = "Load";
 	let vol = document.createElement( 'button' );
 	vol.innerHTML = "+";
+	vol.style.marginLeft = "10px";
 	let volMinus = document.createElement( 'button' );
 	volMinus.innerHTML = "-";
+	volMinus.style.marginLeft = "10px";
 	let mute = document.createElement( 'button' );
 	mute.innerHTML = "mute";
+	mute.style.marginLeft = "15px";
 	let volslider = document.createElement("INPUT"); 
 	volslider.setAttribute("type", "range"); 
 	volslider.min = 0;
@@ -567,8 +571,8 @@ let init = () => {
 	let buttonops = {
 		pos: new Vector3( 0, -130, 0 )
 	};
-	addTwitchPlayer( ('https://www.twitch.tv/tfue'), 'twitch', new Vector3( 0, 200, 0 ), 0, buttonops  );
-	// addYoutubePlayer( ('https://www.youtube.com/watch?v=Z3UF_h0fbRg'), 'youtube', new Vector3( 0, 200, 0 ), 0, buttonops  );
+	// addTwitchPlayer( ('https://www.twitch.tv/tfue'), 'twitch', new Vector3( 0, 200, 0 ), 0, buttonops  );
+	addYoutubePlayer( ('https://www.youtube.com/watch?v=Z3UF_h0fbRg'), 'youtube', new Vector3( 0, 200, 0 ), 0, buttonops  );
 	//Add input buttons
 	// addPopupURLIFrame( 'youtubeURL', 'youtube', 'youtube', new Vector3( 600, -130, 0 ), 0 );
 	// addPopupURL( 'twitchURL', 'twitch', 'twitch', new Vector3( -600, -130, 0 ), 0 );
